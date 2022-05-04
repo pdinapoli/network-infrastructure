@@ -1,0 +1,30 @@
+### Use case :    we have a rack stacked from bottom to top - full of physical servers running esx
+###               switching network infrastructure is a pair of nexus 9K's as "top of rack" design
+###               physical servers have 2x10gig twinax connection to tor-A side / tor-B side
+###               these servers host various environments separated by vlans
+### yaml seed file to change the allowed vlan statement on a range of trunk ports to an esx cluster.
+
+### on eth 1/1-XXX - the (name_of_your_cluster_here) esx host trunk ports 
+
+---
+vlans_allowed:
+  name_of_your_cluster_here:  10,20,924,1008,1012,2000-2014,2016-2017,2019,2022-2030,3001 <-- adjust as necessary
+  
+trunk_int:
+  Ethernet1/1:
+    mode: trunk
+    trunk_allowed_vlans: "{{vlans_allowed.name_of_your_cluster_here}}"
+  Ethernet1/2:
+    mode: trunk
+    trunk_allowed_vlans: "{{vlans_allowed.name_of_your_cluster_here}}"
+  Ethernet1/3:
+    mode: trunk
+    trunk_allowed_vlans: "{{vlans_allowed.name_of_your_cluster_here}}"
+  
+Ethernet1/XXX: <--- etc... if you're lucky your servers are connected contiguously from eth 1/1 - 48 and its nice and clean.
+
+### modify as needed to suit your environment.
+
+### my environment uses an A side storage / B side storage design so we have 2 vars file that we use to deploy vlans to tor-A/tor-B
+### beauty of this playbook + vars file is that the only change should be to line 11 of the vars file
+### add a comma, add the next vlan, commit & run it
