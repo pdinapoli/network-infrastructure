@@ -1,0 +1,36 @@
+### playbook goal:  get buy-off from your organization that network engineers should be trusted to make minor changes during the day.
+### mistake proof the process and take human error out of the process by using ansible to automate the task.
+### outcome: "switchport trunk allowed" playbook can be run by anyone 
+### (give this junior level task to someone else - or even let the server team own it)
+
+### use ansible to add new vlans to an existing trunk interfaces to an esx cluster
+### benefit of this playbook is that the code itself doenst need to change - only the seed file gets touched.
+
+### To run the playbook with a specific seed file:
+### ansible-playbook cisco_switchport_trunk.yml -i inventory/Cisco/blah/blah -e "include_vars=torx-y.yml"
+
+---
+- name: edit "switchport trunk allowed vlan" definition to add additional vlans without breaking anything
+  hosts: all
+  connection: local
+  gather_facts: no
+    
+  tasks:
+    - name: include_vars
+      include_vars: "{{ include_vars }}"
+
+    - name: task1 - add new vlans to existing trunk interface
+      cisco.nxos.nxos_l2_interface:
+        name: "{{ item.key }}"
+        mode: "{{ item.value.mode }}"
+        trunk_allowed_vlans: "{{ item.value.trunk_allowed_vlans }}"
+      loop: "{{ trunk_int | dict2items }}"
+
+    - name: CYA save the configuration!!
+      nxos_command:
+          commands: copy running-config startup-config
+
+
+
+
+
